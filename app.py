@@ -19,7 +19,7 @@ CORS(app)
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-model = YOLO("best.pt")
+model = YOLO(os.path.join(BASE_DIR, "best.pt"))
 
 
 # ----------------------------
