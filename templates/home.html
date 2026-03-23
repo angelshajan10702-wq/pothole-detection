@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pothole Detection System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+</head>
+<body>
+
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <a href="{{ url_for('home') }}" class="logo-wrap">
+                    <img src="{{ url_for('static', filename='logo_symbol.png') }}" class="logo-icon" alt="InfraMatrix Logo">
+                    <div class="brand-text">
+                        <span class="brand-name">
+                            <span class="infra">INFRA</span><span class="matrix">MATRIX</span>
+                        </span>
+                        <span class="brand-sub">AI Road Monitoring</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+
+                <div class="nav-buttons">
+                    <a href="{{ url_for('login_page') }}">
+                        <button class="btn">Login</button>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <p class="hero-tag">AI-Driven Road Safety Platform</p>
+
+            <h1>
+                Pothole Detection &<br>
+                <span class="highlight">Road Health</span><br>Monitoring System
+            </h1>
+
+            <p class="hero-desc">
+                AI-powered solution for detecting potholes, analyzing road conditions,
+                and supporting safer transportation through real-time monitoring and reporting.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="{{ url_for('login_page') }}">
+                    <button class="primary-btn">Get Started</button>
+                </a>
+
+                <a href="#about">
+                    <button class="secondary-btn">Learn More</button>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="about" id="about">
+        <div class="about-container">
+            <p class="section-tag">System Overview</p>
+            <h2>About the System</h2>
+            <p class="about-text">
+                This system uses deep learning to detect potholes from road images and videos.
+                It helps monitor road conditions, classify pothole severity, and support better
+                maintenance planning through an interactive dashboard and reporting interface.
+            </p>
+
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>AI Detection</h3>
+                    <p>Uses YOLO-based object detection to identify potholes accurately from road data.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🛣</div>
+                    <h3>Road Health Monitoring</h3>
+                    <p>Analyzes pothole severity and supports road condition assessment for maintenance.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Dashboard Insights</h3>
+                    <p>Displays pothole statistics, reports, and monitoring results through visual analytics.</p>
+                </div>
+            </div>
+
+            <div class="about-back-home">
+    <a href="{{ url_for('home') }}" class="back-home-link">← Back to Home</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 INFRAMATRIX • AI Road Monitoring Platform</p>
+    </footer>
+
+<script>
+function applyTheme(theme) {
+    if (theme === "Light Mode") {
+        document.documentElement.setAttribute("data-theme", "light");
+    } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const savedTheme = localStorage.getItem("theme");
+
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else {
+        applyTheme("Dark Mode");
+    }
+});
+</script>
+
+</body>
+</html>

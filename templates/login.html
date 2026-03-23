@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFRAMATRIX | Sign In</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body>
+
+<div class="login-page">
+    <div class="login-overlay"></div>
+
+    <div class="login-wrapper">
+
+        <a href="{{ url_for('home') }}" class="brand-block">
+            <img src="{{ url_for('static', filename='logo_symbol.png') }}" alt="InfraMatrix Logo" class="brand-logo">
+
+            <div class="brand-text">
+                <span class="brand-name">
+                    <span class="infra">INFRA</span><span class="matrix">MATRIX</span>
+                </span>
+                <span class="brand-sub">AI ROAD MONITORING</span>
+            </div>
+        </a>
+
+        <div class="login-card">
+            <h2>Sign In</h2>
+            <p class="subtitle">Sign in to access your dashboard</p>
+
+            <form id="loginForm">
+
+                <div class="input-group">
+                    <input type="email" id="email" placeholder="Email Address" required>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+
+                <p class="forgot-password">
+                    <a href="{{ url_for('forgot_password_page') }}">Forgot Password?</a>
+                </p>
+
+                <button type="submit" class="login-btn">Log In</button>
+
+                <p class="signup-text">
+                    New here?
+                    <a href="{{ url_for('signup_page') }}">Create Account</a>
+                </p>
+
+                <p class="back-home">
+                    <a href="{{ url_for('home') }}">← Back to Home</a>
+                </p>
+
+            </form>
+        </div>
+
+        <p class="footer-auth">AUTHORIZED ACCESS ONLY</p>
+
+    </div>
+</div>
+
+<script>
+function applyTheme(theme) {
+    if (theme === "Light Mode") {
+        document.documentElement.setAttribute("data-theme", "light");
+    } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const savedTheme = localStorage.getItem("theme");
+
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else {
+        applyTheme("Dark Mode");
+    }
+});
+
+document.getElementById("loginForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    fetch("/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = "{{ url_for('dashboard') }}";
+        } else {
+            alert(data.message || "Invalid email or password");
+        }
+    })
+    .catch(err => console.error("Error:", err));
+});
+</script>
+
+</body>
+</html>

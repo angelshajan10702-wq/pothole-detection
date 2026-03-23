@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFRAMATRIX Pothole Map</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+    <style>
+        :root{
+            --bg-main:#020817;
+            --bg-secondary:#06142a;
+            --panel:#111c30;
+            --panel-soft:rgba(255,255,255,0.05);
+            --border:rgba(255,255,255,0.08);
+            --text-main:#f8fafc;
+            --text-dim:#94a3b8;
+            --yellow:#ffd43b;
+            --yellow-soft:rgba(255,212,59,0.12);
+            --critical:#ef4444;
+            --medium:#f59e0b;
+            --good:#10b981;
+            --danger:#ff6b6b;
+        }
+
+        html[data-theme="light"]{
+            --bg-main:#f8fafc;
+            --bg-secondary:#e2e8f0;
+            --panel:#ffffff;
+            --panel-soft:rgba(255,255,255,0.92);
+            --border:rgba(15,23,42,0.08);
+            --text-main:#0f172a;
+            --text-dim:#64748b;
+            --yellow:#facc15;
+            --yellow-soft:rgba(250,204,21,0.18);
+            --critical:#dc2626;
+            --medium:#d97706;
+            --good:#16a34a;
+            --danger:#dc2626;
+        }
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Montserrat', sans-serif;
+        }
+
+        body{
+            display:flex;
+            min-height:100vh;
+            background:linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 45%, var(--bg-secondary) 100%);
+            color:var(--text-main);
+        }
+
+        .sidebar{
+            width:260px;
+            background:var(--panel);
+            border-right:1px solid var(--border);
+            padding:24px 18px;
+            display:flex;
+            flex-direction:column;
+        }
+
+        .brand-block{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            margin-bottom:30px;
+            text-decoration:none;
+        }
+
+        .brand-logo{
+            width:48px;
+            height:auto;
+            object-fit:contain;
+        }
+
+        .brand-text{
+            display:flex;
+            flex-direction:column;
+            line-height:1.05;
+        }
+
+        .brand-name{
+            font-size:22px;
+            font-weight:800;
+            letter-spacing:1.2px;
+        }
+
+        .infra{ color:var(--text-main); }
+        .matrix{ color:var(--yellow); }
+
+        .brand-sub{
+            font-size:10px;
+            color:var(--text-dim);
+            letter-spacing:1.4px;
+            text-transform:uppercase;
+            margin-top:3px;
+        }
+
+        .sidebar ul{
+            list-style:none;
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+
+        .sidebar ul li a{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding:12px 14px;
+            border-radius:12px;
+            color:var(--text-dim);
+            text-decoration:none;
+            font-size:15px;
+            font-weight:500;
+            transition:0.25s ease;
+        }
+
+        .sidebar ul li a:hover,
+        .sidebar ul li.active a{
+            background:var(--yellow-soft);
+            color:var(--yellow);
+            transform:translateX(4px);
+        }
+
+        .nav-icon{
+            width:20px;
+            text-align:center;
+            font-size:16px;
+        }
+
+        .logout-item a{
+            color:var(--danger) !important;
+        }
+
+        .logout-item a:hover{
+            background:rgba(239,68,68,0.10) !important;
+            color:var(--danger) !important;
+            transform:translateX(4px);
+        }
+
+        .main{
+            flex:1;
+            padding:28px;
+            overflow-y:auto;
+        }
+
+        .header{
+            margin-bottom:22px;
+            padding:18px 22px;
+            border-radius:14px;
+            border:1px solid var(--border);
+            background:var(--panel-soft);
+            box-shadow:0 10px 25px rgba(0,0,0,0.18);
+        }
+
+        .header h1{
+            font-size:30px;
+            font-weight:800;
+            margin-bottom:6px;
+        }
+
+        .header p{
+            color:var(--text-dim);
+            font-size:14px;
+        }
+
+        .map-layout{
+            display:grid;
+            grid-template-columns:1fr 280px;
+            gap:20px;
+        }
+
+        .map-card,
+        .info-card{
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+            border-radius:18px;
+            padding:20px;
+            box-shadow:0 10px 25px rgba(0,0,0,0.18);
+        }
+
+        .map-card h3,
+        .info-card h3{
+            margin-bottom:16px;
+            font-size:1.05rem;
+            font-weight:700;
+        }
+
+        #map{
+            width:100%;
+            height:540px;
+            border-radius:14px;
+            overflow:hidden;
+            border:1px solid var(--border);
+        }
+
+        .legend{
+            display:grid;
+            gap:12px;
+        }
+
+        .legend-item{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            font-size:14px;
+        }
+
+        .dot{
+            width:14px;
+            height:14px;
+            border-radius:50%;
+            display:inline-block;
+        }
+
+        .dot.low{ background:var(--good); }
+        .dot.medium{ background:var(--medium); }
+        .dot.high{ background:var(--critical); }
+
+        .mini-note{
+            margin-top:18px;
+            color:var(--text-dim);
+            font-size:13px;
+            line-height:1.6;
+        }
+
+        .count-box{
+            margin-top:18px;
+            display:grid;
+            gap:12px;
+        }
+
+        .count-item{
+            padding:12px 14px;
+            border-radius:12px;
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--border);
+            display:flex;
+            justify-content:space-between;
+            font-size:14px;
+        }
+
+        @media (max-width: 1000px){
+            .map-layout{
+                grid-template-columns:1fr;
+            }
+        }
+
+        @media (max-width: 768px){
+            body{
+                flex-direction:column;
+            }
+
+            .sidebar{
+                width:100%;
+                border-right:none;
+                border-bottom:1px solid var(--border);
+            }
+
+            .header h1{
+                font-size:24px;
+            }
+
+            #map{
+                height:420px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <a href="{{ url_for('home') }}" class="brand-block">
+        <img src="{{ url_for('static', filename='logo_symbol.png') }}" alt="Logo" class="brand-logo">
+        <div class="brand-text">
+            <span class="brand-name">
+                <span class="infra">INFRA</span><span class="matrix">MATRIX</span>
+            </span>
+            <span class="brand-sub">AI ROAD MONITORING</span>
+        </div>
+    </a>
+
+    <ul>
+        <li>
+            <a href="{{ url_for('dashboard') }}">
+                <span class="nav-icon"><i class="fa-solid fa-table-columns"></i></span>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <li>
+    <a href="{{ url_for('dashboard') }}">
+        <span class="nav-icon"><i class="fa-solid fa-bell"></i></span>
+        <span>Alerts</span>
+    </a>
+</li>
+
+
+
+
+        <li class="active">
+            <a href="{{ url_for('map_page') }}">
+                <span class="nav-icon"><i class="fa-solid fa-map-location-dot"></i></span>
+                <span>Pothole Map</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('reports') }}">
+                <span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span>
+                <span>Reports</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('settings') }}">
+                <span class="nav-icon"><i class="fa-solid fa-gear"></i></span>
+                <span>Settings</span>
+            </a>
+        </li>
+
+        <li class="logout-item">
+            <a href="{{ url_for('logout') }}">
+                <span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
+                <span>Logout</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="main">
+    <div class="header">
+        <h1>Pothole Map</h1>
+        <p>Geographic view of detected potholes using saved real locations.</p>
+    </div>
+
+    <div class="map-layout">
+        <div class="map-card">
+            <h3>Road Condition Map</h3>
+            <div id="map"></div>
+        </div>
+
+        <div class="info-card">
+            <h3>Map Legend</h3>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <span class="dot low"></span>
+                    <span>Low Severity</span>
+                </div>
+                <div class="legend-item">
+                    <span class="dot medium"></span>
+                    <span>Medium Severity</span>
+                </div>
+                <div class="legend-item">
+                    <span class="dot high"></span>
+                    <span>High Severity</span>
+                </div>
+            </div>
+
+            <div class="count-box">
+                <div class="count-item">
+                    <span>Low</span>
+                    <strong id="lowCount">0</strong>
+                </div>
+                <div class="count-item">
+                    <span>Medium</span>
+                    <strong id="mediumCount">0</strong>
+                </div>
+                <div class="count-item">
+                    <span>High</span>
+                    <strong id="highCount">0</strong>
+                </div>
+            </div>
+
+            <p class="mini-note">
+                This map displays pothole detections using stored coordinates collected during upload through GPS or map-based selection.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+function applyTheme(theme) {
+    if (theme === "Light Mode") {
+        document.documentElement.setAttribute("data-theme", "light");
+    } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else {
+        applyTheme("Dark Mode");
+    }
+});
+
+const map = L.map('map').setView([8.5241, 76.9366], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+fetch("/map-data")
+    .then(response => response.json())
+    .then(points => {
+        let low = 0, medium = 0, high = 0;
+        let markers = [];
+
+        points.forEach(point => {
+            let color = "green";
+            if (point.severity === "Medium") color = "orange";
+            if (point.severity === "High") color = "red";
+
+            if (point.severity === "Low") low++;
+            if (point.severity === "Medium") medium++;
+            if (point.severity === "High") high++;
+
+            const marker = L.circleMarker([point.latitude, point.longitude], {
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.85,
+                radius: 8,
+                weight: 2
+            }).addTo(map);
+
+            marker.bindPopup(
+                "<b>File:</b> " + point.filename +
+                "<br><b>Potholes:</b> " + point.pothole_count +
+                "<br><b>Severity:</b> " + point.severity +
+                "<br><b>Detected At:</b> " + point.detected_at
+            );
+
+            markers.push(marker);
+        });
+
+        document.getElementById("lowCount").textContent = low;
+        document.getElementById("mediumCount").textContent = medium;
+        document.getElementById("highCount").textContent = high;
+
+        if (markers.length > 0) {
+            const group = L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.2));
+        }
+    })
+    .catch(error => {
+        console.error("Error loading map data:", error);
+    });
+</script>
+
+</body>
+</html>

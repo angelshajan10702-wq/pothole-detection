@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFRAMATRIX Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+        :root{
+            --bg-main:#020817;
+            --bg-secondary:#06142a;
+            --panel:#111c30;
+            --panel-soft:rgba(255,255,255,0.05);
+            --border:rgba(255,255,255,0.08);
+            --text-main:#f8fafc;
+            --text-dim:#94a3b8;
+            --input-bg:#0b1527;
+            --yellow:#ffd43b;
+            --yellow-soft:rgba(255,212,59,0.12);
+            --blue:#3b82f6;
+            --critical:#ef4444;
+            --medium:#f59e0b;
+            --good:#10b981;
+            --danger:#ff6b6b;
+        }
+
+        html[data-theme="light"]{
+            --bg-main:#f8fafc;
+            --bg-secondary:#e2e8f0;
+            --panel:#ffffff;
+            --panel-soft:rgba(255,255,255,0.92);
+            --border:rgba(15,23,42,0.08);
+            --text-main:#0f172a;
+            --text-dim:#64748b;
+            --input-bg:#f1f5f9;
+            --yellow:#facc15;
+            --yellow-soft:rgba(250,204,21,0.18);
+            --blue:#2563eb;
+            --critical:#dc2626;
+            --medium:#d97706;
+            --good:#16a34a;
+            --danger:#dc2626;
+        }
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Montserrat', sans-serif;
+        }
+
+        body{
+            display:flex;
+            min-height:100vh;
+            background:linear-gradient(135deg, var(--bg-main) 0%, var(--bg-secondary) 45%, var(--bg-secondary) 100%);
+            color:var(--text-main);
+        }
+
+        .sidebar{
+            width:260px;
+            background:var(--panel);
+            border-right:1px solid var(--border);
+            padding:24px 18px;
+            display:flex;
+            flex-direction:column;
+        }
+
+        .brand-block{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            margin-bottom:30px;
+            text-decoration:none;
+        }
+
+        .brand-logo{
+            width:48px;
+            height:auto;
+            object-fit:contain;
+        }
+
+        .brand-text{
+            display:flex;
+            flex-direction:column;
+            line-height:1.05;
+        }
+
+        .brand-name{
+            font-size:22px;
+            font-weight:800;
+            letter-spacing:1.2px;
+        }
+
+        .infra{ color:var(--text-main); }
+        .matrix{ color:var(--yellow); }
+
+        .brand-sub{
+            font-size:10px;
+            color:var(--text-dim);
+            letter-spacing:1.4px;
+            text-transform:uppercase;
+            margin-top:3px;
+        }
+
+        .sidebar ul{
+            list-style:none;
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+
+        .sidebar ul li a{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding:12px 14px;
+            border-radius:12px;
+            color:var(--text-dim);
+            text-decoration:none;
+            font-size:15px;
+            font-weight:500;
+            transition:0.25s ease;
+        }
+
+        .sidebar ul li a:hover,
+        .sidebar ul li.active a{
+            background:var(--yellow-soft);
+            color:var(--yellow);
+            transform:translateX(4px);
+        }
+
+        .nav-icon{
+            width:20px;
+            text-align:center;
+            font-size:16px;
+        }
+
+        .alerts-badge{
+            margin-left:auto;
+            min-width:20px;
+            height:20px;
+            padding:0 6px;
+            border-radius:999px;
+            background:var(--critical);
+            color:#fff;
+            font-size:11px;
+            font-weight:800;
+            display:none;
+            align-items:center;
+            justify-content:center;
+            box-shadow:0 0 10px rgba(239,68,68,0.45);
+            animation:pulse 1s infinite;
+        }
+
+        .severity-proof-card{
+    background:#ffffff;
+    border-radius:12px;
+    padding:16px;
+    margin-top:20px;
+}
+
+.score-bar-wrap{
+    width:100%;
+    height:12px;
+    background:#e5e7eb;
+    border-radius:999px;
+    margin-top:10px;
+}
+
+.score-bar{
+    height:100%;
+    width:0%;
+    border-radius:999px;
+}
+
+
+
+        .logout-item a{
+            color:var(--danger) !important;
+        }
+
+        .logout-item a:hover{
+            background:rgba(239,68,68,0.10) !important;
+            color:var(--danger) !important;
+            transform:translateX(4px);
+        }
+
+        .main{
+            flex:1;
+            padding:28px;
+            overflow-y:auto;
+        }
+
+        .header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:24px;
+            padding-bottom:14px;
+            border-bottom:1px solid var(--border);
+            gap:14px;
+        }
+
+        .header-left h1{
+            font-size:30px;
+            font-weight:800;
+            margin-bottom:4px;
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+
+        .header-left p{
+            color:var(--text-dim);
+            font-size:14px;
+        }
+
+        .live-alert-dot{
+            display:none;
+            width:12px;
+            height:12px;
+            border-radius:50%;
+            background:var(--critical);
+            box-shadow:0 0 12px rgba(239,68,68,0.8);
+            animation:pulse 1s infinite;
+        }
+
+        .admin-profile{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+            padding:8px 14px;
+            border-radius:16px;
+        }
+
+        .admin-icon{
+            width:34px;
+            height:34px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:50%;
+            background:var(--yellow-soft);
+            color:var(--yellow);
+            font-size:16px;
+        }
+
+        .admin-name{
+            font-weight:600;
+            font-size:14px;
+        }
+
+        .cards{
+            display:grid;
+            grid-template-columns:repeat(4, 1fr);
+            gap:18px;
+            margin-bottom:24px;
+        }
+
+        .card{
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+            border-radius:18px;
+            padding:22px;
+            box-shadow:0 10px 25px rgba(0,0,0,0.18);
+            transition:0.25s ease;
+        }
+
+        .card:hover{
+            transform:translateY(-4px);
+        }
+
+        .alert-active{
+            border:1px solid rgba(239,68,68,0.55) !important;
+            box-shadow:0 0 0 1px rgba(239,68,68,0.18), 0 0 24px rgba(239,68,68,0.28) !important;
+        }
+
+        .card h3{
+            font-size:13px;
+            color:var(--text-dim);
+            margin-bottom:12px;
+            font-weight:600;
+        }
+
+        .card .value{
+            font-size:2rem;
+            font-weight:800;
+        }
+
+        .good{ color:var(--good); }
+        .medium{ color:var(--medium); }
+        .high{ color:var(--critical); }
+
+        .dashboard-grid{
+            display:grid;
+            grid-template-columns:1.05fr 0.95fr;
+            gap:20px;
+        }
+
+        .section{
+            background:var(--panel-soft);
+            border:1px solid var(--border);
+            border-radius:18px;
+            padding:22px;
+            margin-bottom:20px;
+            box-shadow:0 10px 25px rgba(0,0,0,0.18);
+        }
+
+        .section h3{
+            margin-bottom:18px;
+            font-size:1.08rem;
+            font-weight:700;
+        }
+
+        .upload-box{
+            padding:24px;
+            border:2px dashed var(--border);
+            border-radius:14px;
+            background:rgba(255,255,255,0.02);
+        }
+
+        .upload-box input[type="file"]{
+            margin-bottom:16px;
+            display:block;
+            width:100%;
+            color:var(--text-dim);
+        }
+
+        .location-controls{
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-bottom:14px;
+        }
+
+        .action-btn{
+            padding:11px 16px;
+            background:var(--input-bg);
+            color:var(--text-main);
+            border:1px solid var(--border);
+            border-radius:10px;
+            font-weight:700;
+            cursor:pointer;
+            transition:0.25s ease;
+        }
+
+        .action-btn:hover{
+            transform:translateY(-2px);
+        }
+
+        .action-btn.active{
+            background:var(--yellow-soft);
+            color:var(--yellow);
+            border-color:rgba(255,212,59,0.2);
+        }
+
+        .selected-location-box{
+            margin-bottom:16px;
+            padding:14px 16px;
+            border-radius:12px;
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--border);
+        }
+
+        .selected-location-box span{
+            display:block;
+            color:var(--text-dim);
+            font-size:12px;
+            margin-bottom:6px;
+            font-weight:600;
+        }
+
+        .selected-location-box strong{
+            font-size:14px;
+            color:var(--text-main);
+        }
+
+        .helper-note{
+            color:var(--text-dim);
+            font-size:12px;
+            line-height:1.6;
+            margin-bottom:14px;
+        }
+
+        .upload-submit{
+            padding:12px 24px;
+            background:var(--yellow);
+            color:#111827;
+            border:none;
+            border-radius:10px;
+            font-weight:700;
+            cursor:pointer;
+            transition:0.25s ease;
+        }
+
+        .upload-submit:hover{
+            transform:translateY(-2px);
+            box-shadow:0 10px 24px rgba(255,212,59,0.25);
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:8px;
+        }
+
+        table th{
+            color:var(--text-dim);
+            font-size:0.8rem;
+            text-align:left;
+            padding:12px;
+            border-bottom:1px solid var(--border);
+        }
+
+        table td{
+            padding:12px;
+            font-size:0.85rem;
+        }
+
+        table tr:nth-child(even){
+            background:rgba(255,255,255,0.03);
+        }
+
+        .view-btn{
+            padding:6px 14px;
+            background:transparent;
+            border:1px solid var(--yellow);
+            color:var(--yellow);
+            border-radius:8px;
+            cursor:pointer;
+            transition:0.25s ease;
+        }
+
+        .view-btn:hover{
+            background:var(--yellow);
+            color:#111827;
+        }
+
+        .result-card{
+            margin-top:20px;
+            padding:18px;
+            background:rgba(255,255,255,0.04);
+            border:1px solid rgba(255,255,255,0.08);
+            border-radius:14px;
+            text-align:center;
+        }
+
+        .result-card h4{
+            margin-bottom:10px;
+            font-size:18px;
+        }
+
+        .result-card p{
+            margin:6px 0;
+            font-size:15px;
+        }
+
+        .result-image{
+            width:300px;
+            max-width:100%;
+            margin-top:14px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,0.08);
+        }
+
+        .severity-badge{
+            display:inline-block;
+            padding:4px 10px;
+            border-radius:999px;
+            font-size:13px;
+            font-weight:700;
+        }
+
+        .severity-badge.low{
+            background:rgba(16,185,129,0.15);
+            color:#10b981;
+        }
+
+        .severity-badge.medium{
+            background:rgba(245,158,11,0.15);
+            color:#f59e0b;
+        }
+
+        .severity-badge.high{
+            background:rgba(239,68,68,0.15);
+            color:#ef4444;
+        }
+
+        .map-toolbar{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            margin-bottom:14px;
+            flex-wrap:wrap;
+        }
+
+        .map-status{
+            color:var(--text-dim);
+            font-size:13px;
+        }
+
+        .map-status.pick{
+            color:var(--yellow);
+            font-weight:700;
+        }
+
+        #map{
+            height:300px;
+            border-radius:12px;
+            overflow:hidden;
+            border:1px solid var(--border);
+        }
+
+        .modal{
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(2,8,23,0.75);
+            z-index:9999;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+        }
+
+        .modal.show{
+            display:flex;
+        }
+
+        .modal-content{
+            width:100%;
+            max-width:760px;
+            background:var(--panel);
+            border:1px solid var(--border);
+            border-radius:20px;
+            box-shadow:0 20px 50px rgba(0,0,0,0.35);
+            overflow:hidden;
+        }
+
+        .modal-header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:18px 22px;
+            border-bottom:1px solid var(--border);
+        }
+
+        .modal-header h3{
+            font-size:1.2rem;
+            font-weight:800;
+        }
+
+        .modal-actions{
+            display:flex;
+            gap:10px;
+            align-items:center;
+        }
+
+        .small-btn{
+            padding:8px 12px;
+            border-radius:10px;
+            border:1px solid var(--border);
+            background:var(--input-bg);
+            color:var(--text-main);
+            font-weight:700;
+            cursor:pointer;
+        }
+
+        .small-btn.danger{
+            border-color:rgba(239,68,68,0.3);
+            color:#fecaca;
+            background:rgba(239,68,68,0.12);
+        }
+
+        .close-btn{
+            background:transparent;
+            border:none;
+            color:var(--text-main);
+            font-size:22px;
+            cursor:pointer;
+        }
+
+        .modal-body{
+            padding:22px;
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:20px;
+        }
+
+        .detail-box{
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:16px;
+        }
+
+        .detail-box h4{
+            margin-bottom:14px;
+            font-size:15px;
+        }
+
+        .detail-item{
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            padding:10px 0;
+            border-bottom:1px solid rgba(255,255,255,0.05);
+            font-size:14px;
+        }
+
+        .detail-item:last-child{
+            border-bottom:none;
+        }
+
+        .detail-label{
+            color:var(--text-dim);
+        }
+
+        .detail-value{
+            font-weight:700;
+            text-align:right;
+        }
+
+        .modal-image{
+            width:100%;
+            border-radius:14px;
+            border:1px solid var(--border);
+        }
+
+        .image-placeholder{
+            min-height:250px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:var(--text-dim);
+            border:1px dashed var(--border);
+            border-radius:14px;
+            background:rgba(255,255,255,0.02);
+        }
+
+        .alerts-modal-body{
+            padding:22px;
+            max-height:70vh;
+            overflow-y:auto;
+        }
+
+        .alerts-modal-list{
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+        }
+
+        .alerts-empty{
+            color:var(--text-dim);
+            font-size:14px;
+        }
+
+        .alert-item{
+            padding:14px;
+            border-radius:12px;
+            border:1px solid rgba(239,68,68,0.20);
+            background:rgba(239,68,68,0.08);
+        }
+
+        .alert-item-top{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:12px;
+            margin-bottom:8px;
+        }
+
+        .alert-item-title{
+            color:#ff8c8c;
+            font-weight:800;
+            font-size:14px;
+        }
+
+        .alert-item-time{
+            font-size:12px;
+            color:var(--text-dim);
+            white-space:nowrap;
+        }
+
+        .alert-item-details{
+            font-size:13px;
+            line-height:1.7;
+        }
+
+        @keyframes pulse{
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.25); opacity: 0.65; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 1200px){
+            .cards{
+                grid-template-columns:repeat(2, 1fr);
+            }
+
+            .dashboard-grid{
+                grid-template-columns:1fr;
+            }
+        }
+
+        @media (max-width: 768px){
+            body{
+                flex-direction:column;
+            }
+
+            .sidebar{
+                width:100%;
+                border-right:none;
+                border-bottom:1px solid var(--border);
+            }
+
+            .cards{
+                grid-template-columns:1fr;
+            }
+
+            .header{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+
+            .header-left h1{
+                font-size:24px;
+            }
+
+            #map{
+                height:260px;
+            }
+
+            .modal-body{
+                grid-template-columns:1fr;
+            }
+
+            .modal-actions{
+                flex-wrap:wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <a href="{{ url_for('home') }}" class="brand-block">
+        <img src="{{ url_for('static', filename='logo_symbol.png') }}" alt="Logo" class="brand-logo">
+        <div class="brand-text">
+            <span class="brand-name">
+                <span class="infra">INFRA</span><span class="matrix">MATRIX</span>
+            </span>
+            <span class="brand-sub">AI ROAD MONITORING</span>
+        </div>
+    </a>
+
+    <ul>
+        <li class="active">
+            <a href="{{ url_for('dashboard') }}">
+                <span class="nav-icon"><i class="fa-solid fa-table-columns"></i></span>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="javascript:void(0)" id="alertsNavBtn">
+                <span class="nav-icon"><i class="fa-solid fa-bell"></i></span>
+                <span>Alerts</span>
+                <span id="alertsBadge" class="alerts-badge">0</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('map_page') }}">
+                <span class="nav-icon"><i class="fa-solid fa-map-location-dot"></i></span>
+                <span>Pothole Map</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('reports') }}">
+                <span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span>
+                <span>Reports</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('settings') }}">
+                <span class="nav-icon"><i class="fa-solid fa-gear"></i></span>
+                <span>Settings</span>
+            </a>
+        </li>
+
+        <li class="logout-item">
+            <a href="{{ url_for('logout') }}">
+                <span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
+                <span>Logout</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="main">
+
+    <div class="header">
+        <div class="header-left">
+            <h1>
+                Dashboard Overview
+                <span id="liveAlertDot" class="live-alert-dot"></span>
+            </h1>
+            <p>Pothole Detection & Road Health Monitoring System</p>
+        </div>
+
+        <div class="admin-profile">
+            <div class="admin-icon">👤</div>
+            <div class="admin-name">{{ user }}</div>
+        </div>
+    </div>
+
+    <div class="cards">
+        <div class="card">
+            <h3>Total Potholes</h3>
+            <div class="value" id="totalPotholes">{{ total }}</div>
+        </div>
+
+        <div class="card" id="criticalCard">
+            <h3>Critical Potholes</h3>
+            <div class="value high" id="criticalPotholes">{{ critical }}</div>
+        </div>
+
+        <div class="card">
+            <h3>Road Health Index</h3>
+            <div class="value good" id="roadHealthValue">
+                {{ road_health }}
+                {% if road_health > 70 %}
+                    (Good)
+                {% elif road_health > 40 %}
+                    (Medium)
+                {% else %}
+                    (Poor)
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Accident Risk Level</h3>
+            <div class="value medium" id="accidentRiskValue">Medium</div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="left-col">
+
+            <div class="section">
+    <h3>Road Data Upload</h3>
+    <div class="upload-box">
+        <form id="uploadForm" action="/detect" method="post" enctype="multipart/form-data">
+            <input type="file" id="roadFile" name="file" accept="image/*,video/*" required>
+
+            <div class="location-controls">
+                <button type="button" class="action-btn" id="gpsBtn">
+                    <i class="fa-solid fa-location-crosshairs"></i> Use Current Location
+                </button>
+                <button type="button" class="action-btn" id="pickMapBtn">
+                    <i class="fa-solid fa-hand-pointer"></i> Pick on Map
+                </button>
+                <button type="button" class="action-btn" id="clearLocationBtn">
+                    <i class="fa-solid fa-xmark"></i> Clear Location
+                </button>
+            </div>
+
+            <div class="selected-location-box">
+                <span>Selected Location</span>
+                <strong id="selectedLocationText">No location selected</strong>
+            </div>
+
+            <p class="helper-note">
+                Use your current GPS location or click “Pick on Map” and choose a point from the map on the right.
+            </p>
+
+            <input type="hidden" id="selectedLatitude">
+            <input type="hidden" id="selectedLongitude">
+
+            <button type="submit" class="upload-submit">Upload & Detect</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+</div>
+
+            <div class="section">
+                <h3>Recent Pothole Reports</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>File</th>
+                            <th>Severity</th>
+                            <th>Priority</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in recent %}
+                        <tr>
+                            <td>{{ row[6] }}</td>
+                            <td>{{ row[1] }}</td>
+                            <td class="
+                                {% if row[3] == 'High' %}high
+                                {% elif row[3] == 'Medium' %}medium
+                                {% else %}good
+                                {% endif %}
+                            ">
+                                {{ row[3] }}
+                            </td>
+                            <td class="
+                                {% if row[3] == 'High' %}high
+                                {% elif row[3] == 'Medium' %}medium
+                                {% else %}good
+                                {% endif %}
+                            ">
+                                {% if row[3] == 'High' %}
+                                    Immediate
+                                {% elif row[3] == 'Medium' %}
+                                    Scheduled
+                                {% else %}
+                                    Monitor
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="view-btn" onclick="viewReport({{ row[0] }})">View</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="right-col">
+            <div class="section">
+                <h3>Location Mapping</h3>
+
+                <div class="map-toolbar">
+                    <div id="mapStatus" class="map-status">Showing saved pothole locations</div>
+                    <div style="font-size: 0.8rem;">
+                        <span class="high">● High</span>
+                        <span class="medium">● Medium</span>
+                        <span class="good">● Low</span>
+                    </div>
+                </div>
+
+                <div id="map"></div>
+            </div>
+
+            <div class="section">
+                <h3>Severity Distribution</h3>
+                <div style="height:250px;">
+                    <canvas id="severityChart"></canvas>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Pothole Trend Analysis</h3>
+                <div style="height:250px;">
+                    <canvas id="potholeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="alertsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Severe Alerts</h3>
+            <div class="modal-actions">
+                <button class="small-btn danger" id="clearAlertsBtn">Clear All</button>
+                <button class="close-btn" onclick="closeAlertsModal()">&times;</button>
+            </div>
+        </div>
+
+        <div class="alerts-modal-body">
+            <div id="alertsModalList" class="alerts-modal-list">
+                <div class="alerts-empty">No alerts available.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="reportModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Detection Report</h3>
+            <button class="close-btn" onclick="closeReportModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="detail-box">
+                <h4>Report Details</h4>
+
+                <div class="detail-item">
+                    <span class="detail-label">File Name</span>
+                    <span class="detail-value" id="modalFilename">-</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Pothole Count</span>
+                    <span class="detail-value" id="modalCount">-</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Severity</span>
+                    <span class="detail-value" id="modalSeverity">-</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Priority</span>
+                    <span class="detail-value" id="modalPriority">-</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Detected At</span>
+                    <span class="detail-value" id="modalDate">-</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Location</span>
+                    <span class="detail-value" id="modalLocation">-</span>
+                </div>
+            </div>
+
+            <div class="detail-box">
+                <h4>Annotated Result Image</h4>
+                <img id="modalImage" class="modal-image" src="" alt="Detection Result" style="display:none;">
+                <div id="modalImagePlaceholder" class="image-placeholder">No image available</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const severeAlertsEnabled = {{ show_severe_alerts | tojson }};
+let selectedLat = null;
+let selectedLon = null;
+let pickMode = false;
+let pickMarker = null;
+let potholeMarkers = [];
+let severeAlerts = [];
+let unreadAlertCount = 0;
+
+function applyTheme(theme) {
+    if (theme === "Light Mode") {
+        document.documentElement.setAttribute("data-theme", "light");
+    } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+    }
+
+    updateChartTheme();
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else {
+        applyTheme("Dark Mode");
+    }
+
+    document.getElementById("alertsNavBtn").addEventListener("click", openAlertsModal);
+    document.getElementById("clearAlertsBtn").addEventListener("click", clearAllAlerts);
+
+    document.getElementById("alertsModal").addEventListener("click", function(e) {
+        if (e.target === this) {
+            closeAlertsModal();
+        }
+    });
+});
+
+function getThemeColors() {
+    const styles = getComputedStyle(document.documentElement);
+    return {
+        textMain: styles.getPropertyValue('--text-main').trim(),
+        textDim: styles.getPropertyValue('--text-dim').trim(),
+        border: styles.getPropertyValue('--border').trim(),
+        yellow: styles.getPropertyValue('--yellow').trim(),
+        good: styles.getPropertyValue('--good').trim(),
+        medium: styles.getPropertyValue('--medium').trim(),
+        critical: styles.getPropertyValue('--critical').trim()
+    };
+}
+
+function updateChartTheme() {
+    if (typeof potholeChart === "undefined" || typeof severityChart === "undefined") return;
+
+    const colors = getThemeColors();
+
+    potholeChart.options.plugins.legend.labels.color = colors.textMain;
+    potholeChart.options.scales.x.ticks.color = colors.textDim;
+    potholeChart.options.scales.y.ticks.color = colors.textDim;
+    potholeChart.options.scales.x.grid.color = colors.border;
+    potholeChart.options.scales.y.grid.color = colors.border;
+    potholeChart.data.datasets[0].borderColor = colors.yellow;
+    potholeChart.data.datasets[0].pointBorderColor = colors.yellow;
+
+    severityChart.options.plugins.legend.labels.color = colors.textMain;
+    severityChart.data.datasets[0].backgroundColor = [colors.good, colors.medium, colors.critical];
+
+    potholeChart.update();
+    severityChart.update();
+}
+
+function updateAlertsBadge() {
+    const badge = document.getElementById("alertsBadge");
+
+    if (unreadAlertCount > 0) {
+        badge.style.display = "inline-flex";
+        badge.textContent = unreadAlertCount > 99 ? "99+" : unreadAlertCount;
+    } else {
+        badge.style.display = "none";
+    }
+}
+
+function renderAlertsModal() {
+    const container = document.getElementById("alertsModalList");
+
+    if (severeAlerts.length === 0) {
+        container.innerHTML = `<div class="alerts-empty">No alerts available.</div>`;
+        return;
+    }
+
+    container.innerHTML = severeAlerts.map((alert, index) => `
+        <div class="alert-item">
+            <div class="alert-item-top">
+                <div class="alert-item-title">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    High Severity Alert
+                </div>
+                <div class="alert-item-time">${alert.detectedTime}</div>
+            </div>
+
+            <div class="alert-item-details">
+                <strong>File:</strong> ${alert.fileName}<br>
+                <strong>Potholes:</strong> ${alert.potholeCount}<br>
+                <strong>Severity:</strong> ${alert.severity}<br>
+                <strong>Priority:</strong> Immediate Action<br>
+                <strong>Location:</strong> ${alert.locationText}
+            </div>
+
+            <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="small-btn" onclick="focusAlertOnMap(${index})">View on Map</button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function addSevereAlert(fileName, potholeCount, severity, latitude = null, longitude = null) {
+    if (!severeAlertsEnabled) return;
+    if (severity !== "High") return;
+
+    const detectedTime = new Date().toLocaleString();
+
+    let locationText = "Not Available";
+    if (latitude !== null && longitude !== null && latitude !== "" && longitude !== "") {
+        locationText = `${Number(latitude).toFixed(5)}, ${Number(longitude).toFixed(5)}`;
+    }
+
+    severeAlerts.unshift({
+        fileName,
+        potholeCount,
+        severity,
+        detectedTime,
+        latitude,
+        longitude,
+        locationText
+    });
+
+    if (severeAlerts.length > 20) {
+        severeAlerts.pop();
+    }
+
+    unreadAlertCount++;
+    updateAlertsBadge();
+    renderAlertsModal();
+
+    document.getElementById("criticalCard").classList.add("alert-active");
+    document.getElementById("liveAlertDot").style.display = "inline-block";
+}
+
+function openAlertsModal() {
+    document.getElementById("alertsModal").classList.add("show");
+    unreadAlertCount = 0;
+    updateAlertsBadge();
+}
+
+function closeAlertsModal() {
+    document.getElementById("alertsModal").classList.remove("show");
+
+    if (severeAlerts.length === 0) {
+        document.getElementById("criticalCard").classList.remove("alert-active");
+        document.getElementById("liveAlertDot").style.display = "none";
+    }
+}
+
+function clearAllAlerts() {
+    severeAlerts = [];
+    unreadAlertCount = 0;
+    updateAlertsBadge();
+    renderAlertsModal();
+    document.getElementById("criticalCard").classList.remove("alert-active");
+    document.getElementById("liveAlertDot").style.display = "none";
+}
+
+function focusAlertOnMap(index) {
+    const alert = severeAlerts[index];
+    if (!alert) return;
+
+    closeAlertsModal();
+
+    if (alert.latitude !== null && alert.longitude !== null && alert.latitude !== "" && alert.longitude !== "") {
+        map.setView([Number(alert.latitude), Number(alert.longitude)], 16);
+    }
+}
+
+function showSevereAlert(fileName, potholeCount, severity, latitude = null, longitude = null) {
+    if (!severeAlertsEnabled) return;
+    if (severity !== "High") return;
+
+    addSevereAlert(fileName, potholeCount, severity, latitude, longitude);
+
+    if (latitude !== null && longitude !== null && latitude !== "" && longitude !== "") {
+        map.setView([Number(latitude), Number(longitude)], 16);
+    }
+}
+
+function updateDashboardStats() {
+    fetch("/stats")
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("totalPotholes").innerText = data.total;
+        document.getElementById("criticalPotholes").innerText = data.critical;
+
+        let healthElement = document.getElementById("roadHealthValue");
+        healthElement.innerText = data.road_health + " (" + data.health_status + ")";
+        healthElement.classList.remove("good", "medium", "high");
+
+        if (data.health_status === "Good") {
+            healthElement.classList.add("good");
+        } else if (data.health_status === "Medium") {
+            healthElement.classList.add("medium");
+        } else {
+            healthElement.classList.add("high");
+        }
+
+        let riskCard = document.getElementById("accidentRiskValue");
+        riskCard.innerText = data.accident_risk;
+        riskCard.classList.remove("good", "medium", "high");
+
+        if (data.accident_risk === "Low") {
+            riskCard.classList.add("good");
+        } else if (data.accident_risk === "Medium") {
+            riskCard.classList.add("medium");
+        } else {
+            riskCard.classList.add("high");
+        }
+
+        let tableBody = document.querySelector("tbody");
+        tableBody.innerHTML = "";
+
+        [...data.recent].reverse().forEach(row => {
+            let priority = "Monitor";
+            if (row[3] === "High") priority = "Immediate";
+            else if (row[3] === "Medium") priority = "Scheduled";
+
+            let priorityClass =
+                row[3] === "High" ? "high" :
+                row[3] === "Medium" ? "medium" :
+                "good";
+
+            let newRow = `
+            <tr>
+                <td>${row[6]}</td>
+                <td>${row[1]}</td>
+                <td class="${
+                    row[3] === 'High' ? 'high' :
+                    row[3] === 'Medium' ? 'medium' :
+                    'good'
+                }">${row[3]}</td>
+                <td class="${priorityClass}">${priority}</td>
+                <td><button class="view-btn" onclick="viewReport(${row[0]})">View</button></td>
+            </tr>
+            `;
+            tableBody.innerHTML += newRow;
+        });
+
+        let low = 0, mediumCount = 0, highCount = 0;
+
+        data.recent.forEach(row => {
+            let severity = row[3].toLowerCase();
+            if (severity === "low") low++;
+            else if (severity === "medium") mediumCount++;
+            else if (severity === "high") highCount++;
+        });
+
+        severityChart.data.datasets[0].data = [low, mediumCount, highCount];
+        severityChart.update();
+        updateChart();
+    });
+}
+
+const selectedLocationText = document.getElementById("selectedLocationText");
+const mapStatus = document.getElementById("mapStatus");
+const gpsBtn = document.getElementById("gpsBtn");
+const pickMapBtn = document.getElementById("pickMapBtn");
+const clearLocationBtn = document.getElementById("clearLocationBtn");
+
+function setSelectedLocation(lat, lon, sourceText = "Selected") {
+    selectedLat = lat;
+    selectedLon = lon;
+
+    document.getElementById("selectedLatitude").value = lat;
+    document.getElementById("selectedLongitude").value = lon;
+
+    selectedLocationText.textContent = `${sourceText}: ${Number(lat).toFixed(6)}, ${Number(lon).toFixed(6)}`;
+
+    if (pickMarker) {
+        map.removeLayer(pickMarker);
+    }
+
+    pickMarker = L.marker([lat, lon]).addTo(map);
+}
+
+function clearSelectedLocation() {
+    selectedLat = null;
+    selectedLon = null;
+    document.getElementById("selectedLatitude").value = "";
+    document.getElementById("selectedLongitude").value = "";
+    selectedLocationText.textContent = "No location selected";
+
+    if (pickMarker) {
+        map.removeLayer(pickMarker);
+        pickMarker = null;
+    }
+
+    pickMode = false;
+    pickMapBtn.classList.remove("active");
+    mapStatus.textContent = "Showing saved pothole locations";
+    mapStatus.classList.remove("pick");
+}
+
+gpsBtn.addEventListener("click", function() {
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported on this device.");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            setSelectedLocation(position.coords.latitude, position.coords.longitude, "GPS");
+            map.setView([position.coords.latitude, position.coords.longitude], 14);
+        },
+        function() {
+            alert("Unable to get current location.");
+        }
+    );
+});
+
+pickMapBtn.addEventListener("click", function() {
+    pickMode = !pickMode;
+
+    if (pickMode) {
+        pickMapBtn.classList.add("active");
+        mapStatus.textContent = "Pick mode active: click anywhere on the map";
+        mapStatus.classList.add("pick");
+    } else {
+        pickMapBtn.classList.remove("active");
+        mapStatus.textContent = "Showing saved pothole locations";
+        mapStatus.classList.remove("pick");
+    }
+});
+
+clearLocationBtn.addEventListener("click", function() {
+    clearSelectedLocation();
+});
+
+let map = L.map('map').setView([8.5241, 76.9366], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+function loadSavedMapPoints() {
+    potholeMarkers.forEach(marker => map.removeLayer(marker));
+    potholeMarkers = [];
+
+    fetch("/map-data")
+        .then(response => response.json())
+        .then(points => {
+            let boundsMarkers = [];
+
+            points.forEach(point => {
+                let color = "green";
+                if (point.severity === "Medium") color = "orange";
+                if (point.severity === "High") color = "red";
+
+                const marker = L.circleMarker([point.latitude, point.longitude], {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.85,
+                    radius: 8,
+                    weight: 2
+                }).addTo(map);
+
+                marker.bindPopup(
+                    "<b>File:</b> " + point.filename +
+                    "<br><b>Potholes:</b> " + point.pothole_count +
+                    "<br><b>Severity:</b> " + point.severity +
+                    "<br><b>Detected At:</b> " + point.detected_at
+                );
+
+                potholeMarkers.push(marker);
+                boundsMarkers.push(marker);
+            });
+
+            if (boundsMarkers.length > 0 && !selectedLat && !selectedLon) {
+                const group = L.featureGroup(boundsMarkers);
+                map.fitBounds(group.getBounds().pad(0.2));
+            }
+        });
+}
+
+loadSavedMapPoints();
+
+map.on("click", function(e) {
+    if (!pickMode) return;
+    setSelectedLocation(e.latlng.lat, e.latlng.lng, "Map");
+});
+
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("uploadForm");
+    const resultBox = document.getElementById("result");
+    const fileInput = document.getElementById("roadFile");
+
+    if (!form || !fileInput) {
+        console.error("Form or file input not found");
+        return;
+    }
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert("Please choose an image first.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        if (selectedLat !== null && selectedLon !== null) {
+            formData.append("latitude", selectedLat);
+            formData.append("longitude", selectedLon);
+        }
+
+        fetch("/detect", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Detect response:", data);
+
+            if (!data.success) {
+                alert(data.message || "Detection failed.");
+                return;
+            }
+
+            // ✅ ADD THIS BLOCK HERE
+            if (data.potholes === 0) {
+                document.getElementById("result").innerHTML =
+                "<div class='result-card'>" +
+                "<h4>No potholes detected</h4>" +
+                "<img src='/" + data.image + "' class='result-image'>" +
+                "</div>";
+            return;
+            }
+
+
+            const potholes = data.potholes ?? 0;
+            const avgArea = data.avg_area ?? 0;
+            const maxArea = data.max_area ?? 0;
+            const severityScore = data.severity_score ?? 0;
+            const severity = data.severity ?? "Low";
+            const hasLocation =
+                data.latitude !== null && data.latitude !== undefined &&
+                data.longitude !== null && data.longitude !== undefined;
+
+            resultBox.innerHTML = `
+                <div class="result-card">
+                    <h4>Detection Result</h4>
+                    <p><b>Potholes:</b> ${potholes}</p>
+                    <p><b>Avg Area:</b> ${avgArea}</p>
+                    <p><b>Max Area:</b> ${maxArea}</p>
+                    <p><b>Severity Score:</b> ${severityScore}</p>
+                    <p><b>Severity:</b> <span class="severity-badge ${severity.toLowerCase()}">${severity}</span></p>
+                    <p><b>Location:</b> ${hasLocation ? `${Number(data.latitude).toFixed(5)}, ${Number(data.longitude).toFixed(5)}` : "Not available"}</p>
+                    ${data.image ? `<img src="/${data.image}" class="result-image" alt="Detection Result">` : ""}
+                </div>
+            `;
+
+            showSevereAlert(
+                fileInput.files[0].name,
+                potholes,
+                severity,
+                data.latitude,
+                data.longitude
+            );
+
+            updateDashboardStats();
+            loadSavedMapPoints();
+            clearSelectedLocation();
+            form.reset();
+        })
+        .catch(error => {
+            console.error("REAL ERROR:", error);
+            alert("Detection failed.");
+        });
+    });
+});
+ 
+
+
+
+function viewReport(reportId) {
+    fetch(`/report/${reportId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.message || "Report not found");
+                return;
+            }
+
+            document.getElementById("modalFilename").textContent = data.filename;
+            document.getElementById("modalCount").textContent = data.pothole_count;
+            document.getElementById("modalSeverity").textContent = data.severity;
+            document.getElementById("modalPriority").textContent = data.priority;
+            document.getElementById("modalDate").textContent = data.detected_at;
+
+            if (data.latitude !== null && data.longitude !== null) {
+                document.getElementById("modalLocation").textContent =
+                    `${Number(data.latitude).toFixed(6)}, ${Number(data.longitude).toFixed(6)}`;
+            } else {
+                document.getElementById("modalLocation").textContent = "Not Available";
+            }
+
+            const modalImage = document.getElementById("modalImage");
+            const modalPlaceholder = document.getElementById("modalImagePlaceholder");
+
+            modalImage.src = data.image;
+            modalImage.style.display = "block";
+            modalPlaceholder.style.display = "none";
+
+            modalImage.onerror = function() {
+                modalImage.style.display = "none";
+                modalPlaceholder.style.display = "flex";
+            };
+
+            document.getElementById("reportModal").classList.add("show");
+        })
+        .catch(error => {
+            console.error("Error fetching report:", error);
+            alert("Unable to load report details.");
+        });
+}
+
+function closeReportModal() {
+    document.getElementById("reportModal").classList.remove("show");
+}
+
+document.getElementById("reportModal").addEventListener("click", function(e) {
+    if (e.target === this) {
+        closeReportModal();
+    }
+});
+</script>
+
+<script>
+let ctx = document.getElementById("potholeChart").getContext("2d");
+
+let gradient = ctx.createLinearGradient(0, 0, 0, 300);
+gradient.addColorStop(0, "rgba(255,212,59,0.55)");
+gradient.addColorStop(1, "rgba(255,212,59,0.08)");
+
+let potholeChart = new Chart(ctx, {
+    type: "line",
+    data: {
+        labels: [],
+        datasets: [{
+            label: "Potholes Detected",
+            data: [],
+            borderColor: "#ffd43b",
+            backgroundColor: gradient,
+            fill: true,
+            borderWidth: 3,
+            tension: 0.4,
+            pointBackgroundColor: "#ffffff",
+            pointBorderColor: "#ffd43b",
+            pointRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 1200,
+            easing: "easeInOutQuart"
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    color: "#ffffff"
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: "#94a3b8" },
+                grid: { color: "rgba(255,255,255,0.05)" }
+            },
+            y: {
+                ticks: { color: "#94a3b8" },
+                grid: { color: "rgba(255,255,255,0.05)" },
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+let severityCtx = document.getElementById("severityChart").getContext("2d");
+
+let severityChart = new Chart(severityCtx, {
+    type: "pie",
+    data: {
+        labels: ["Low", "Medium", "High"],
+        datasets: [{
+            data: [0, 0, 0],
+            backgroundColor: ["#10b981", "#f59e0b", "#ef4444"]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    color: "#ffffff"
+                }
+            }
+        }
+    }
+});
+
+function updateChart() {
+    fetch("/stats")
+    .then(response => response.json())
+    .then(data => {
+        potholeChart.data.labels = [];
+        potholeChart.data.datasets[0].data = [];
+
+        data.recent.reverse().forEach(row => {
+            potholeChart.data.labels.push(row[6]);
+            potholeChart.data.datasets[0].data.push(row[2]);
+        });
+
+        potholeChart.update();
+    });
+}
+
+updateChart();
+updateChartTheme();
+</script>
+
+</body>
+</html>

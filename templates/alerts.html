@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFRAMATRIX Alerts</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root{
+            --bg-main:#f1f5f9;
+            --panel:#ffffff;
+            --panel-2:#f8fafc;
+            --border:rgba(15,23,42,0.08);
+            --text-main:#0f172a;
+            --text-dim:#64748b;
+            --input-bg:#eef2f7;
+            --sidebar-bg:#ffffff;
+            --yellow:#facc15;
+            --yellow-soft:rgba(250,204,21,0.20);
+            --critical:#ef4444;
+            --critical-soft:rgba(239,68,68,0.14);
+            --good:#16a34a;
+            --good-soft:rgba(34,197,94,0.14);
+            --shadow:0 10px 24px rgba(15,23,42,0.08);
+        }
+
+        html[data-theme="dark"]{
+            --bg-main:#020817;
+            --panel:#0f172a;
+            --panel-2:#111c30;
+            --border:rgba(255,255,255,0.08);
+            --text-main:#f8fafc;
+            --text-dim:#94a3b8;
+            --input-bg:#142033;
+            --sidebar-bg:#081120;
+            --yellow:#ffd43b;
+            --yellow-soft:rgba(255,212,59,0.14);
+            --critical:#ef4444;
+            --critical-soft:rgba(239,68,68,0.18);
+            --good:#22c55e;
+            --good-soft:rgba(34,197,94,0.18);
+            --shadow:0 12px 28px rgba(0,0,0,0.28);
+        }
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Montserrat', sans-serif;
+        }
+
+        body{
+            display:flex;
+            min-height:100vh;
+            background:var(--bg-main);
+            color:var(--text-main);
+        }
+
+        .sidebar{
+            width:220px;
+            background:var(--sidebar-bg);
+            border-right:1px solid var(--border);
+            padding:18px 14px;
+            display:flex;
+            flex-direction:column;
+        }
+
+        .brand-block{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin-bottom:28px;
+            text-decoration:none;
+        }
+
+        .brand-logo{
+            width:42px;
+            height:42px;
+            object-fit:contain;
+            border-radius:8px;
+        }
+
+        .brand-text{
+            display:flex;
+            flex-direction:column;
+            line-height:1.05;
+        }
+
+        .brand-name{
+            font-size:18px;
+            font-weight:800;
+            letter-spacing:0.8px;
+        }
+
+        .infra{ color:var(--text-main); }
+        .matrix{ color:var(--yellow); }
+
+        .brand-sub{
+            font-size:9px;
+            color:var(--text-dim);
+            letter-spacing:1.2px;
+            text-transform:uppercase;
+            margin-top:3px;
+        }
+
+        .sidebar ul{
+            list-style:none;
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+
+        .sidebar ul li a{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding:12px 12px;
+            border-radius:12px;
+            color:var(--text-dim);
+            text-decoration:none;
+            font-size:15px;
+            font-weight:500;
+            transition:0.25s ease;
+        }
+
+        .sidebar ul li a:hover,
+        .sidebar ul li.active a{
+            background:var(--yellow-soft);
+            color:var(--yellow);
+        }
+
+        .nav-icon{
+            width:18px;
+            text-align:center;
+            font-size:15px;
+        }
+
+        .logout-item a{
+            color:var(--critical) !important;
+        }
+
+        .logout-item a:hover{
+            background:var(--critical-soft) !important;
+            color:var(--critical) !important;
+        }
+
+        .main{
+            flex:1;
+            padding:22px;
+            overflow-y:auto;
+        }
+
+        .header{
+            margin-bottom:18px;
+        }
+
+        .header h1{
+            font-size:24px;
+            font-weight:800;
+            margin-bottom:4px;
+        }
+
+        .header p{
+            color:var(--text-dim);
+            font-size:14px;
+        }
+
+        .alert-section{
+            background:var(--panel);
+            border:1px solid var(--border);
+            border-radius:18px;
+            box-shadow:var(--shadow);
+            padding:18px;
+        }
+
+        .alert-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+            gap:16px;
+        }
+
+        .alert-card{
+            background:var(--panel-2);
+            border:1px solid var(--border);
+            border-left:5px solid var(--critical);
+            border-radius:16px;
+            padding:16px;
+        }
+
+        .alert-card h3{
+            font-size:16px;
+            margin-bottom:10px;
+        }
+
+        .alert-card p{
+            font-size:13px;
+            color:var(--text-dim);
+            margin-bottom:8px;
+        }
+
+        .badge{
+            display:inline-block;
+            padding:6px 10px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:700;
+            background:var(--critical-soft);
+            color:var(--critical);
+            margin-top:8px;
+        }
+
+        .empty-box{
+            text-align:center;
+            padding:36px;
+            color:var(--text-dim);
+            border:1px dashed var(--border);
+            border-radius:14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <a href="{{ url_for('dashboard') }}" class="brand-block">
+        <img src="{{ url_for('static', filename='logo_symbol.png') }}" alt="Logo" class="brand-logo">
+        <div class="brand-text">
+            <span class="brand-name">
+                <span class="infra">INFRA</span><span class="matrix">MATRIX</span>
+            </span>
+            <span class="brand-sub">AI ROAD MONITORING</span>
+        </div>
+    </a>
+
+    <ul>
+        <li><a href="{{ url_for('dashboard') }}"><i class="fa-solid fa-table-columns"></i> Dashboard</a></li>
+        <li class="active"><a href="{{ url_for('alerts') }}"><i class="fa-solid fa-bell nav-icon"></i> Alerts</a></li>
+        <li><a href="{{ url_for('map_page') }}"><i class="fa-solid fa-map-location-dot nav-icon"></i> Pothole Map</a></li>
+        <li><a href="{{ url_for('reports') }}"><i class="fa-solid fa-file-lines nav-icon"></i> Reports</a></li>
+        <li><a href="{{ url_for('settings') }}"><i class="fa-solid fa-gear nav-icon"></i> Settings</a></li>
+        <li class="logout-item"><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout</a></li>
+    </ul>
+</div>
+
+<div class="main">
+    <div class="header">
+        <h1>High Severity Alerts</h1>
+        <p>Active high-priority pothole detections requiring attention</p>
+    </div>
+
+    <div class="alert-section">
+        {% if alert_data and alert_data|length > 0 %}
+            <div class="alert-grid">
+                {% for row in alert_data %}
+                <div class="alert-card">
+                    <h3>{{ row[1] }}</h3>
+                    <p><strong>Pothole Count:</strong> {{ row[2] }}</p>
+                    <p><strong>Severity:</strong> {{ row[3] }}</p>
+                    <p><strong>Detected At:</strong> {{ row[6] }}</p>
+                    <p>
+                        <strong>Location:</strong>
+                        {% if row[4] is not none and row[5] is not none %}
+                            {{ "%.5f"|format(row[4]) }}, {{ "%.5f"|format(row[5]) }}
+                        {% else %}
+                            Not Available
+                        {% endif %}
+                    </p>
+                    <span class="badge">Immediate Action Needed</span>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-box">
+                <p>No active high severity alerts right now.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function applyTheme(theme) {
+    if (theme === "Dark Mode") {
+        document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+        document.documentElement.setAttribute("data-theme", "light");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else {
+        applyTheme("Light Mode");
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFRAMATRIX | Sign Up</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='signup.css') }}">
+</head>
+<body>
+
+<div class="signup-page">
+    <div class="signup-overlay"></div>
+
+    <div class="signup-wrapper">
+        <a href="{{ url_for('home') }}" class="brand-block">
+            <img src="{{ url_for('static', filename='logo_symbol.png') }}" alt="InfraMatrix Logo" class="brand-logo">
+            <div class="brand-text">
+                <span class="brand-name">
+                    <span class="infra">INFRA</span><span class="matrix">MATRIX</span>
+                </span>
+                <span class="brand-sub">AI ROAD MONITORING</span>
+            </div>
+        </a>
+
+        <div class="signup-card">
+            <h2>Sign Up</h2>
+            <p class="subtitle">Create an authorized account</p>
+
+            <form id="signupForm" onsubmit="return signup()">
+                <div class="input-group">
+                    <input id="name" type="text" placeholder="Full Name" required>
+                </div>
+
+                <div class="input-group">
+                    <input id="email" type="email" placeholder="Email Address" required>
+                </div>
+
+                <div class="input-group">
+                    <input id="password" type="password" placeholder="Password" required>
+                </div>
+
+                <div class="input-group">
+                    <input id="confirmPassword" type="password" placeholder="Confirm Password" required>
+                </div>
+
+                <button type="submit" class="signup-btn">Create Account</button>
+
+                <p class="login-link">
+                    Already have access?
+                    <a href="{{ url_for('login_page') }}">Log In</a>
+                </p>
+
+                <p class="back-home">
+                    <a href="{{ url_for('home') }}">← Back to Home</a>
+                </p>
+            </form>
+        </div>
+
+        <p class="footer-auth">AUTHORIZED ACCESS ONLY</p>
+    </div>
+</div>
+
+<script>
+function applyTheme(theme) {
+    if (theme === "Light Mode") {
+        document.documentElement.setAttribute("data-theme", "light");
+    } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const savedTheme = localStorage.getItem("theme");
+
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else {
+        applyTheme("Dark Mode");
+    }
+});
+
+function signup() {
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if (password !== confirmPassword) {
+        alert("Passwords do not match");
+        return false;
+    }
+
+    fetch("/signup", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name: name,
+            email: email,
+            password: password
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("Signup successful");
+            window.location.href = "/login";
+        } else {
+            alert(data.message || "Signup failed");
+        }
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        alert("Something went wrong");
+    });
+
+    return false;
+}
+</script>
+
+</body>
+</html>
