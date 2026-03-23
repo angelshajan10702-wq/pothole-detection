@@ -20,6 +20,7 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 model = YOLO(os.path.join(BASE_DIR, "best.pt"))
+print("Model loaded successfully")
 
 
 # ----------------------------
@@ -756,7 +757,22 @@ def detect():
         return jsonify({"success": False, "message": "Image preprocessing failed."})
 
     # Run YOLO on preprocessed image
-    results = model(preprocessed_path)
+    try:
+        print("Detection started")
+        print("Image path:", preprocessed_path)
+
+        results = model.predict(
+        source=preprocessed_path,
+        imgsz=320,
+        device="cpu",
+        save=False
+    )
+
+    print("Detection completed successfully")
+
+    except Exception as e:
+        print("Detection error:", str(e))
+    return jsonify({"error": str(e)}), 500
 
     boxes = results[0].boxes
     areas = []
