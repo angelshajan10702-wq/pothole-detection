@@ -756,29 +756,32 @@ def detect():
     if not preprocessing_success:
         return jsonify({"success": False, "message": "Image preprocessing failed."})
 
+    # Resize image before detection
+    img = cv2.imread(preprocessed_path)
+    img = cv2.resize(img, (192, 192))
+    cv2.imwrite(preprocessed_path, img)
+
     # Run YOLO on preprocessed image
     try:
-    print("Detection started", flush=True)
-    print("Image path:", preprocessed_path, flush=True)
+        print("Detection started", flush=True)
+        print("Image path:", preprocessed_path, flush=True)
 
-    results = model.predict(
-        source=preprocessed_path,
-        imgsz=320,
-        device="cpu",
-        save=False
-    )
+        results = model.predict(
+            source=preprocessed_path,
+            imgsz=192,
+            device="cpu",
+            conf=0.5,
+            max_det=5,
+            save=False
+        )
 
-    print("Detection completed successfully", flush=True)
-
-except Exception as e:
-    print("Detection error:", str(e), flush=True)
-    return jsonify({"error": str(e)}), 500
-
-    app.logger.info("Detection completed successfully")
+        print("Detection completed successfully", flush=True)
 
     except Exception as e:
-        app.logger.error(f"Detection error: {str(e)}")
-    return jsonify({"error": str(e)}), 500
+        print("Detection error:", str(e), flush=True)
+        return jsonify({"success": False, "message": str(e)}), 500
+
+    # continue your remaining code here
 
     boxes = results[0].boxes
     areas = []
