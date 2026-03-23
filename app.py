@@ -762,6 +762,8 @@ def detect():
     cv2.imwrite(preprocessed_path, img)
 
     # Run YOLO on preprocessed image
+   
+   
     try:
         print("Detection started", flush=True)
         print("Image path:", preprocessed_path, flush=True)
@@ -780,8 +782,6 @@ def detect():
     except Exception as e:
         print("Detection error:", str(e), flush=True)
         return jsonify({"success": False, "message": str(e)}), 500
-
-    # continue your remaining code here
 
     boxes = results[0].boxes
     areas = []
